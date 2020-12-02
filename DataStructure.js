@@ -5,6 +5,8 @@ const Blockchain = [];
 const register = {};
 const pendingDocuments = {};
 
+const proofOfWork = '000';
+
 createDocument(`Genesis Block the first of its kind.`)
 mineBlock();
 
@@ -74,7 +76,7 @@ function mineBlock() {
      block.nonce = 0
      let hash = createBlockHash(block);
 
-     while(!hash.startsWith('0')) {
+     while(!hash.startsWith(proofOfWork)) {
           block.nonce++;
           hash = createBlockHash(block);
      }
@@ -96,11 +98,12 @@ function isDocumentValid(doc) {
 
 function isBlockValid(block) {
      const isStructureValid = Object.keys(block).toString() === 'blockNumber,timeStamp,hash,nonce,prevBlockHash,data';
+     const isWorkProofen = block.hash.startsWith(proofOfWork);
      const isHashValid = createBlockHash(block) === block.hash;
 
      const docsValid = Object.values(block.data).filter(doc => !isDocumentValid(doc)).length === 0 ? true : false;
 
-     return isStructureValid && isHashValid && docsValid;
+     return isStructureValid && isWorkProofen && isHashValid && docsValid ;
 }
 
 function isChainValid(chain) {
@@ -138,7 +141,8 @@ class Interface {
 
                chain.forEach(block => addBlock(block));
                Object.keys(pendingDocuments).forEach( docId => register[docId] = 'pending' )
-              
+                              
+               console.log(register);
                return true;
           } else {
                return false;
