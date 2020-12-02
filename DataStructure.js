@@ -4,7 +4,6 @@ const { Worker } = require('worker_threads');
 const os = require('os');
 
 const threads = os.cpus().length;
-console.log(threads);
 
 const Blockchain = [];
 const register = {};
