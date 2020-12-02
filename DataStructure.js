@@ -3,11 +3,11 @@ const { Worker } = require('worker_threads');
 const os = require('os');
 
 const threads = os.cpus().length;
+const proofOfWork = '0000';
 
 const Blockchain = [];
 const register = {};
 const pendingDocuments = {};
-const proofOfWork = '0000';
 
 function getLasBlock() {
      return Blockchain[Blockchain.length-1]
