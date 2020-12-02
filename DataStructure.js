@@ -1,5 +1,4 @@
 const rndString = require('./random');
-const { SHA3 } = require('sha3');
 const { Worker } = require('worker_threads');
 const os = require('os');
 
@@ -9,9 +8,6 @@ const Blockchain = [];
 const register = {};
 const pendingDocuments = {};
 const proofOfWork = '0000';
-
-createDocument(`Genesis Block the first of its kind.`)
-mineBlock();
 
 function getLasBlock() {
      return Blockchain[Blockchain.length-1]
@@ -79,10 +75,11 @@ function mineBlock() {
 
                workers.push(thread);
           
-               thread.on('message', data => {
+               thread.on('message', block => {
                     workers.forEach(worker => worker.terminate());
-                    addBlock(data);
-                    resolve(data);});
+                    addBlock(block);
+                    resolve(block);
+               });
 
                thread.on('messageerror', err => reject(err));
           }
