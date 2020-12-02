@@ -138,8 +138,7 @@ class Interface {
 
                chain.forEach(block => addBlock(block));
                Object.keys(pendingDocuments).forEach( docId => register[docId] = 'pending' )
-                              
-               console.log(register);
+              
                return true;
           } else {
                return false;
