@@ -162,7 +162,7 @@ class Interface {
           let docs = [];
 
           Blockchain.forEach(block => {
-               docs = docs.concat(Object.values(block.data));
+               Object.values(block.data).forEach(doc => docs.push({...doc}));
           })
 
           return docs;
