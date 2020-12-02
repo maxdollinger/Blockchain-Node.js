@@ -66,16 +66,6 @@ function addBlock(block) {
      })
 }
 
-function createBlockHash(block) {
-     const dataToHash = block.blockNumber + block.prevBlockHash + block.nonce + JSON.stringify(block.data);
-     const hash = new SHA3(512);
-
-     const newHash = hash.update(dataToHash).digest('hex');
-     hash.reset();
-
-     return newHash;
-}
-
 function mineBlock() {
      return new Promise((resolve, reject) => {
           const block = createBlock();
@@ -99,25 +89,6 @@ function mineBlock() {
           }
      })
 }
-
-// function mineBlock() {
-//      const block = createBlock();
-
-//      block.nonce = 0
-//      let hash = createBlockHash(block);
-
-//      while(!hash.startsWith(proofOfWork)) {
-//           block.nonce++
-//           hash = createBlockHash(block);
-//      }
-
-//      block.hash = hash;
-//      block.timeStamp = Date.now();
-
-//      addBlock(block);
-
-//      return block;
-// }
 
 function isDocumentValid(doc) {
      const isValidDocument = Object.keys(doc).toString() === 'id,timeStamp,data';
