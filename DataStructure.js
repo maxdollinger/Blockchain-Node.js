@@ -1,5 +1,6 @@
 const rndString = require('./random');
 const { Worker } = require('worker_threads');
+const { SHA3 } = require('sha3');
 const os = require('os');
 
 const threads = os.cpus().length;
@@ -51,6 +52,15 @@ function createBlock() {
      return newBlock;
 }
 
+function createBlockHash(block) {
+     const dataToHash = block.blockNumber + block.prevBlockHash + block.nonce + JSON.stringify(block.data);
+     const hash = new SHA3(512);
+
+     const newHash = hash.update(dataToHash).digest('hex');
+     hash.reset();
+
+     return newHash;
+}
 
 function addBlock(block) {
      Blockchain.push(block);
@@ -164,7 +174,9 @@ class Interface {
      }
 
      setPendingDocuments(docs) {
-          Object.values(docs).forEach(doc => pendingDocuments[doc.id] = doc);
+          Object.values(docs).forEach(doc => {
+               if(isValidDocument(doc)) pendingDocuments[doc.id] = doc;
+          } );
      }
 
      addBlock(block) {
