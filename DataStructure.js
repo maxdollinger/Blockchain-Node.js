@@ -1,11 +1,15 @@
 const rndString = require('./random');
 const { SHA3 } = require('sha3');
+const { Worker } = require('worker_threads');
+const os = require('os');
+
+const threads = os.cpus().length;
+console.log(threads);
 
 const Blockchain = [];
 const register = {};
 const pendingDocuments = {};
-
-const proofOfWork = '000';
+const proofOfWork = '0000';
 
 createDocument(`Genesis Block the first of its kind.`)
 mineBlock();
@@ -37,6 +41,8 @@ function addDocument(document) {
 
 function createBlock() {
      const prevBlockHash = Blockchain.length > 0 ? getLasBlock().hash : 0;
+     const data = {...pendingDocuments};
+
 
      const newBlock = {
           blockNumber: Blockchain.length,
@@ -44,7 +50,7 @@ function createBlock() {
           hash: 0,
           nonce: 0,
           prevBlockHash,
-          data: {...pendingDocuments}
+          data
      };
 
      return newBlock;
@@ -71,23 +77,47 @@ function createBlockHash(block) {
 }
 
 function mineBlock() {
-     const block = createBlock();
+     return new Promise((resolve, reject) => {
+          const block = createBlock();
+          const workers = [];
 
-     block.nonce = 0
-     let hash = createBlockHash(block);
+          for(let i = 0; i < threads; i++) {
+               const thread = new Worker('./hash.js', { workerData: {
+                    modulo: threads,
+                    number: i,
+                    proofOfWork,
+                    block} } );
 
-     while(!hash.startsWith(proofOfWork)) {
-          block.nonce++;
-          hash = createBlockHash(block);
-     }
+               workers.push(thread);
+          
+               thread.on('message', data => {
+                    workers.forEach(worker => worker.terminate());
+                    addBlock(data);
+                    resolve(data);});
 
-     block.hash = hash;
-     block.timeStamp = Date.now();
-
-     addBlock(block);
-
-     return block;
+               thread.on('messageerror', err => reject(err));
+          }
+     })
 }
+
+// function mineBlock() {
+//      const block = createBlock();
+
+//      block.nonce = 0
+//      let hash = createBlockHash(block);
+
+//      while(!hash.startsWith(proofOfWork)) {
+//           block.nonce++
+//           hash = createBlockHash(block);
+//      }
+
+//      block.hash = hash;
+//      block.timeStamp = Date.now();
+
+//      addBlock(block);
+
+//      return block;
+// }
 
 function isDocumentValid(doc) {
      const isValidDocument = Object.keys(doc).toString() === 'id,timeStamp,data';
@@ -134,21 +164,6 @@ class Interface {
           return [...Blockchain];
      }
 
-     setChain(chain) {
-         if(chain.length > Blockchain.length && isChainValid(chain)) {
-               Blockchain.splice(0);
-               Object.keys(register).forEach( docId => delete register[docId] );
-
-               chain.forEach(block => addBlock(block));
-               Object.keys(pendingDocuments).forEach( docId => register[docId] = 'pending' )
-                              
-               console.log(register);
-               return true;
-          } else {
-               return false;
-          }
-     }
-
      getPendingDocuments() {
           return {...pendingDocuments};
      }
@@ -181,6 +196,10 @@ class Interface {
           }
      }
 
+     setPendingDocuments(docs) {
+          Object.values(docs).forEach(doc => pendingDocuments[doc.id] = doc);
+     }
+
      addBlock(block) {
           const testChain = [getLasBlock(), block];
 
@@ -191,6 +210,20 @@ class Interface {
                return false;
           }
      }
+
+     setChain(chain) {
+          if(chain.length > Blockchain.length && isChainValid(chain)) {
+                Blockchain.splice(0);
+                Object.keys(register).forEach( docId => delete register[docId] );
+ 
+                chain.forEach(block => addBlock(block));
+                Object.keys(pendingDocuments).forEach( docId => register[docId] = 'pending' )
+ 
+                return true;
+           } else {
+                return false;
+           }
+      }
 
      mineBlock() {
           return mineBlock();
