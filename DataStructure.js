@@ -40,7 +40,7 @@ function createBlock() {
      const data = {...pendingDocuments};
 
 
-     const newBlock = {
+     return {
           blockNumber: Blockchain.length,
           timeStamp: 0,
           hash: 0,
@@ -48,8 +48,6 @@ function createBlock() {
           prevBlockHash,
           data
      };
-
-     return newBlock;
 }
 
 function createBlockHash(block) {
@@ -78,8 +76,8 @@ function mineBlock() {
 
           for(let i = 0; i < threads; i++) {
                const thread = new Worker('./hash.js', { workerData: {
-                    modulo: threads,
-                    number: i,
+                    modulus: threads,
+                    residueClass: i,
                     proofOfWork,
                     block} } );
 
@@ -98,19 +96,19 @@ function mineBlock() {
 
 function isDocumentValid(doc) {
      const isValidDocument = Object.keys(doc).toString() === 'id,timeStamp,data';
-     const isIdValid = doc.id.replace(/[a-f0-9]{64}/, '').length === 0 ? true : false;
+     const isIdValid = doc.id.replace(/[a-f0-9]{64}/, '').length === 0;
 
      return isValidDocument && isIdValid;
 }
 
 function isBlockValid(block) {
      const isStructureValid = Object.keys(block).toString() === 'blockNumber,timeStamp,hash,nonce,prevBlockHash,data';
-     const isWorkProofen = block.hash.startsWith(proofOfWork);
+     const isWorkProven = block.hash.startsWith(proofOfWork);
      const isHashValid = createBlockHash(block) === block.hash;
 
-     const docsValid = Object.values(block.data).filter(doc => !isDocumentValid(doc)).length === 0 ? true : false;
+     const docsValid = Object.values(block.data).filter(doc => !isDocumentValid(doc)).length === 0;
 
-     return isStructureValid && isWorkProofen && isHashValid && docsValid ;
+     return isStructureValid && isWorkProven && isHashValid && docsValid ;
 }
 
 function isChainValid(chain) {
@@ -175,7 +173,7 @@ class Interface {
 
      setPendingDocuments(docs) {
           Object.values(docs).forEach(doc => {
-               if(isValidDocument(doc)) pendingDocuments[doc.id] = doc;
+               if(isDocumentValid(doc)) pendingDocuments[doc.id] = doc;
           } );
      }
 

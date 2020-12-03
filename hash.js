@@ -1,7 +1,7 @@
 const { SHA3 } = require('sha3');
 const { parentPort, workerData } = require('worker_threads');
 
-const {modulo, number, proofOfWork, block} = workerData;
+const {modulus, residueClass, proofOfWork, block} = workerData;
 
 function createBlockHash(block) {
      const dataToHash = block.blockNumber + block.prevBlockHash + block.nonce + JSON.stringify(block.data);
@@ -14,12 +14,12 @@ function createBlockHash(block) {
 }
 
 function mineBlock() {
-     block.nonce = number;
+     block.nonce = residueClass;
      let hash = createBlockHash(block);
 
      while(!hash.startsWith(proofOfWork)) {
-          block.nonce++
-          if(block.nonce % modulo === number) hash = createBlockHash(block);
+          block.nonce++;
+          if(block.nonce % modulus === residueClass) hash = createBlockHash(block);
      }
 
      block.hash = hash;
